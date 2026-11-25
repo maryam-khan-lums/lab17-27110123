@@ -392,7 +392,9 @@
     .generated-empty { padding: 1rem; border: 1px dashed var(--olive); border-radius: 14px; color: var(--muted); }
     .generated-list-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .4rem; }
     .generated-list-header h3 { margin: 0; }
+    .generated-list-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
     .copy-status { min-height: 1.5em; margin: .6rem 0 0; color: var(--sage); font-size: .8rem; }
+    .print-summary { display: none; }
 
     .empty-state {
       padding: 1.25rem;
@@ -472,6 +474,24 @@
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+
+    @media print {
+      @page { margin: 16mm; }
+      body { background: white; color: black; }
+      body * { visibility: hidden !important; }
+      .generated-list, .generated-list * { visibility: visible !important; }
+      .generated-list {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+      }
+      .generated-list-actions, .copy-status, .generated-empty { display: none !important; }
+      .print-summary { display: block; color: black !important; }
+      .ingredient-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ingredient-card { break-inside: avoid; background: white; }
     }
   </style>
 </head>
@@ -572,9 +592,13 @@
         <section class="generated-list" aria-labelledby="generated-list-title">
           <div class="generated-list-header">
             <h3 id="generated-list-title">Your ingredient list</h3>
-            <button class="button" id="copy-shopping-list" type="button" disabled>Copy Shopping List</button>
+            <div class="generated-list-actions">
+              <button class="button button-secondary" id="print-shopping-list" type="button" disabled>Print / Save List</button>
+              <button class="button" id="copy-shopping-list" type="button" disabled>Copy Shopping List</button>
+            </div>
           </div>
           <p>Quantities are scaled to your household. Prices are example estimates for each chosen ingredient.</p>
+          <p class="print-summary" id="print-summary"></p>
           <div class="ingredient-grid" id="ingredient-list"></div>
           <p class="generated-empty" id="generated-empty">Choose ingredients below and your list will appear here.</p>
           <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
@@ -730,6 +754,8 @@
     const generatedEmpty = document.getElementById("generated-empty");
     const resetButton = document.getElementById("reset-kitchen");
     const copyButton = document.getElementById("copy-shopping-list");
+    const printButton = document.getElementById("print-shopping-list");
+    const printSummary = document.getElementById("print-summary");
     const copyStatus = document.getElementById("copy-status");
     const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
     const quantityNumber = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
@@ -756,6 +782,7 @@
       const selectedCards = cards.filter((card) => card.querySelector(".item-checkbox").checked);
       generatedEmpty.hidden = selectedCards.length > 0;
       copyButton.disabled = selectedCards.length === 0;
+      printButton.disabled = selectedCards.length === 0;
       copyStatus.textContent = "";
 
       selectedCards.forEach((card) => {
@@ -848,6 +875,7 @@
       const activePantry = pantry.length ? pantry.join(", ") : "none noted";
       summaryOutput.textContent = `${people} ${people === 1 ? "person" : "people"} · Budget ${currency.format(budget)} · Dietary: ${activeDiets} · Devices: ${activeDevices} · Pantry: ${activePantry}`;
       totalOutput.textContent = `List total: ${currency.format(total)} of ${currency.format(budget)} budget`;
+      printSummary.textContent = `Household: ${people} ${people === 1 ? "person" : "people"} · List total: ${currency.format(total)} of ${currency.format(budget)} budget`;
       const budgetNotice = removedItems.length ? ` Removed to fit the updated budget: ${removedItems.join(", ")}.` : "";
       reassuranceOutput.textContent = `Recommendations are filtered for ${people} ${people === 1 ? "person" : "people"}, your selected dietary needs, and available devices. Pantry matches are skipped, and your selected total stays within ${currency.format(budget)}.${budgetNotice}`;
       emptyState.hidden = visibleCards.length > 0;
@@ -880,6 +908,8 @@
       });
       updatePlanner();
     });
+
+    printButton.addEventListener("click", () => window.print());
 
     copyButton.addEventListener("click", async () => {
       const selectedCards = menuCards.filter((card) => (
