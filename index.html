@@ -437,6 +437,18 @@
     .form-status { min-height: 1.5em; margin: 0; color: var(--sage); font-size: .86rem; }
     .form-error { color: #9c3d2c; }
 
+    .tip-section { padding-block: 0 2.5rem; }
+    .tip-box {
+      padding: clamp(1.25rem, 3vw, 2rem);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--olive);
+      border-radius: 16px;
+      background: var(--paper);
+    }
+    .tip-box .eyebrow { margin-bottom: .5rem; }
+    .tip-box h2 { margin-bottom: .5rem; font-size: 1.5rem; }
+    .tip-box p:last-child { margin-bottom: 0; color: var(--muted); }
+
     footer {
       padding-block: 1.75rem;
       border-top: 1px solid var(--line);
@@ -730,6 +742,14 @@
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
         </form>
       </div>
+    </section>
+
+    <section class="tip-section shell" aria-labelledby="tip-title">
+      <aside class="tip-box">
+        <p class="eyebrow">A little kitchen wisdom</p>
+        <h2 id="tip-title">Tip of the Day</h2>
+        <p>Before you shop, check for ingredients that need using soon and plan one meal around them. It can help reduce waste and leave a little more room in your budget.</p>
+      </aside>
     </section>
   </main>
 
